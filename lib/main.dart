@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'QuizBrain.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
 void main() => runApp(Quizzler());
 
@@ -25,6 +27,48 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
+  QuizBrain quizBrain = QuizBrain();
+
+  List<Icon> userAnswers = [];
+
+  void checkAnswer(bool userAnswer) {
+    if (userAnswer == quizBrain.getQuestionAnswer()) {
+      userAnswers.add(
+        Icon(
+          Icons.check,
+          color: Colors.green,
+        ),
+      );
+      quizBrain.markUp();
+    } else {
+      userAnswers.add(
+        Icon(
+          Icons.close,
+          color: Colors.red,
+        ),
+      );
+    }
+
+    if (quizBrain.getQuestionNumber() !=
+        quizBrain.getQuestionBankLength() - 1) {
+      setState(() {
+        quizBrain.nextQuestion();
+      });
+    } else {
+      Alert(
+              context: context,
+              title: "Quiz Done!",
+              desc: "You got ${quizBrain.getMark()} marks")
+          .show();
+      userAnswers = [];
+      quizBrain.setQuestionNumber(-1);
+      quizBrain.setMark(0);
+      setState(() {
+        quizBrain.nextQuestion();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -37,7 +81,7 @@ class _QuizPageState extends State<QuizPage> {
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                'This is where the question text will go.',
+                quizBrain.getQuestionText(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 25.0,
@@ -61,7 +105,7 @@ class _QuizPageState extends State<QuizPage> {
                 ),
               ),
               onPressed: () {
-                //The user picked true.
+                checkAnswer(true);
               },
             ),
           ),
@@ -79,12 +123,14 @@ class _QuizPageState extends State<QuizPage> {
                 ),
               ),
               onPressed: () {
-                //The user picked false.
+                checkAnswer(false);
               },
             ),
           ),
         ),
-        //TODO: Add a Row here as your score keeper
+        Row(
+          children: userAnswers,
+        )
       ],
     );
   }
